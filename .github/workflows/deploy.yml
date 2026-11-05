@@ -1,12 +1,14 @@
-# Workflow автоматической публикации статического сайта на GitHub Pages.
+# Workflow автоматической проверки и публикации статического сайта на GitHub Pages.
 # Файл размещается в репозитории по пути: .github/workflows/deploy.yml
 
 name: Deploy static site   # название workflow (видно на вкладке Actions)
 
-# Триггер: workflow запускается при каждом push в ветку main
 on:
   push:
-    branches: [ main ]
+    branches: [ main ]     # проверка и деплой при каждом push в main
+  pull_request:
+    branches: [ main ]     # только проверка для запросов на слияние в main
+  workflow_dispatch:       # ручной запуск кнопкой Run workflow
 
 # Права доступа, необходимые для публикации на GitHub Pages
 permissions:
@@ -15,7 +17,33 @@ permissions:
   id-token: write   # OIDC-токен для подтверждения деплоя
 
 jobs:
-  deploy:                  # задание: собрать и опубликовать сайт
+  # Задание 1. Автопроверка качества кода (линтинг) перед публикацией
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install linters
+        run: npm install --no-save htmlhint@1.1.4 stylelint@16.10.0 stylelint-config-recommended@14.0.1
+
+      # Проверка HTML по правилам из файла .htmlhintrc
+      - name: Lint HTML (HTMLHint)
+        run: npx htmlhint "**/*.html"
+
+      # Проверка CSS по правилам из файла .stylelintrc.json
+      - name: Lint CSS (Stylelint)
+        run: npx stylelint "**/*.css"
+
+  # Задание 2. Публикация сайта — только если проверка прошла и это не pull request
+  deploy:
+    needs: lint
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest # виртуальная машина-исполнитель
     environment:
       name: github-pages
