@@ -73,6 +73,12 @@ h2 {
   font-size: 0.95rem;
 }
 
+/* Ссылки в подвале (правило стоит выше .nav a:hover — требование Stylelint) */
+.footer a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
 .nav a:hover {
   color: var(--primary);
 }
@@ -294,11 +300,6 @@ h2 {
   text-align: center;
   color: var(--muted);
   font-size: 0.9rem;
-}
-
-.footer a {
-  color: var(--primary);
-  text-decoration: none;
 }
 
 /* ===== Адаптивность ===== */
